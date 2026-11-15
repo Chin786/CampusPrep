@@ -47,6 +47,8 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/signup" element={<Navigate replace to="/register" />} />
+        <Route path="/signin" element={<Navigate replace to="/login" />} />
         {(['login', 'register', 'forgot', 'reset'] as const).map((mode) => (
           <Route
             key={mode}
