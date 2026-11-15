@@ -1,0 +1,42 @@
+{
+  "name": "campusprep-cbt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs",
+    "seed": "node scripts/seed.mjs"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "3.10.0",
+    "@supabase/server": "^1.9.2",
+    "@supabase/supabase-js": "2.99.1",
+    "exceljs": "4.4.0",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
+    "lucide-react": "0.468.0",
+    "papaparse": "5.5.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hook-form": "7.62.0",
+    "react-router-dom": "6.30.3",
+    "zod": "3.25.76",
+    "zustand": "5.0.8"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.10",
+    "@types/papaparse": "5.3.16",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "@vitejs/plugin-react": "4.7.0",
+    "autoprefixer": "10.4.21",
+    "postcss": "8.5.6",
+    "supabase": "^3.1.0",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.8.3",
+    "vite": "6.4.1"
+  }
+}
