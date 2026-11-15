@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { db, errorText, configured } from '../lib/db'
 import { candidateReturnPath } from '../lib/returnPath'
 import { useSession } from '../store/session'
+import { sendEmail } from '../lib/email'
 const labels = {
   full_name: 'Full name',
   email: 'Email address',
@@ -21,12 +22,15 @@ export function Auth({
 }: {
   mode: 'login' | 'register' | 'forgot' | 'reset'
 }) {
-  const [notice, setNotice] = useState(''),
-    [error, setError] = useState(''),
-    nav = useNavigate(),
+  const nav = useNavigate(),
+    loc = useLocation(),
     [params] = useSearchParams(),
     next = candidateReturnPath(params.get('next')),
-    suffix = next === '/' ? '' : '?next=' + encodeURIComponent(next)
+    suffix = next === '/' ? '' : '?next=' + encodeURIComponent(next),
+    locationNotice =
+      (loc.state as { notice?: string } | null)?.notice || '',
+    [notice, setNotice] = useState(locationNotice),
+    [error, setError] = useState('')
   const fields: (keyof Fields)[] =
     mode === 'register'
       ? ['full_name', 'roll_no', 'phone', 'email', 'password']
@@ -76,13 +80,39 @@ export function Auth({
               roll_no: f.roll_no,
               phone: f.phone,
             },
-            emailRedirectTo: location.origin + '/login' + suffix,
+            emailRedirectTo: window.location.origin + '/login' + suffix,
           },
         })
         if (r.error) throw r.error
-        setNotice(
-          'Check your email to verify your account. Your placement officer will review your registration.',
-        )
+
+        // Send confirmation/welcome notification via Nodemailer
+        void sendEmail({
+          to: f.email,
+          subject: 'Registration Confirmation - CampusPrep CBT',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h2 style="color: #1e293b; margin-top: 0;">Account Created Successfully</h2>
+              <p>Hello <strong>${f.full_name}</strong>,</p>
+              <p>Your registration for <strong>CampusPrep CBT</strong> has been received with Roll Number <strong>${f.roll_no}</strong>.</p>
+              <p>Your placement officer will review and approve your account. Once approved, you can sign in to view and start scheduled mock exams.</p>
+              <div style="margin: 24px 0;">
+                <a href="${window.location.origin}/login" style="background: #2563eb; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                  Go to Sign In
+                </a>
+              </div>
+              <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+              <p style="color: #64748b; font-size: 12px; margin: 0;">CampusPrep Computer-Based Examination System</p>
+            </div>
+          `,
+        })
+
+        nav('/login' + suffix, {
+          state: {
+            notice:
+              'Account created successfully! Check your email to verify your account, then sign in below.',
+          },
+        })
+        return
       }
       if (mode === 'forgot') {
         const r = await db.auth.resetPasswordForEmail(f.email, {
@@ -182,10 +212,14 @@ export function Auth({
           </p>
         )}
         <div className="links">
-          {mode !== 'login' && <Link to={'/login' + suffix}>Sign in</Link>}
+          {mode !== 'login' && (
+            <Link to={'/login' + suffix}>Already have an account? Sign in</Link>
+          )}
           {mode === 'login' && (
             <>
-              <Link to={'/register' + suffix}>Register as a student</Link>
+              <Link to={'/register' + suffix}>
+                Don't have an account? Create an account / Sign up
+              </Link>
               <Link to="/forgot">Forgot password?</Link>
             </>
           )}

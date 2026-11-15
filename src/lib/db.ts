@@ -4,6 +4,11 @@ const url = import.meta.env.VITE_SUPABASE_URL,
     import.meta.env.VITE_SUPABASE_ANON_KEY ||
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 export const configured = Boolean(url && key)
+if (!configured) {
+  console.warn(
+    '[CampusPrep] Missing Supabase environment variables. Make sure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your environment (or Vercel Project Settings).',
+  )
+}
 export const db = createClient(
   url || 'http://127.0.0.1:54321',
   key || 'configuration-required',
